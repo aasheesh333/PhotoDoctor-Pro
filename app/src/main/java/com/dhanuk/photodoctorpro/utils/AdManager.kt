@@ -45,6 +45,17 @@ object AdManager {
 
     fun initialize(context: Context) {
         if (initialized.compareAndSet(false, true)) {
+            // Ad content-rating hardening: cap inventory at "G" (general
+            // audiences) so AdMob can never serve gambling / adult creatives —
+            // OPPO reviewers rejected PicFix Pro 1.5.3 as "Risk App; Gambling
+            // Ads" when unfiltered inventory served betting advertisements.
+            MobileAds.setRequestConfiguration(
+                com.google.android.gms.ads.RequestConfiguration.Builder()
+                    .setMaxAdContentRating(
+                        com.google.android.gms.ads.RequestConfiguration.MAX_AD_CONTENT_RATING_G
+                    )
+                    .build()
+            )
             MobileAds.initialize(context) {}
             loadInterstitialAd(context)
         } else {

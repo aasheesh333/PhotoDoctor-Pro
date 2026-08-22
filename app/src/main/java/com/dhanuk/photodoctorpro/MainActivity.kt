@@ -45,7 +45,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         splashScreen.setKeepOnScreenCondition { false }
         ConsentManager.init(this)
-        if (ConsentManager.canRequestAds()) {
+        val gmsAvailable = com.google.android.gms.common.GoogleApiAvailability.getInstance()
+            .isGooglePlayServicesAvailable(this) ==
+            com.google.android.gms.common.ConnectionResult.SUCCESS
+        if (gmsAvailable && ConsentManager.canRequestAds()) {
             AdManager.initialize(this)
         }
         CrashReporter.registerActivity(this)
@@ -67,7 +70,7 @@ class MainActivity : ComponentActivity() {
         ThemeController.init(this)
         AdManager.setCurrentActivity(this)
         notifySystemDarkMode()
-        if (ConsentManager.canRequestAds()) {
+        if (gmsAvailable && ConsentManager.canRequestAds()) {
             AdManager.onAppForeground(this)
         }
         maybeRepromptForDeniedPermissions()

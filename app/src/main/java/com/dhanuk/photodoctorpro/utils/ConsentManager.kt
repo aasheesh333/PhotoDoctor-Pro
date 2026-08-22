@@ -19,6 +19,17 @@ object ConsentManager {
     private var consentInformation: ConsentInformation? = null
 
     fun init(activity: Activity) {
+        // Non-GMS devices (OPPO/ColorOS review units, HMS-only handsets): UMP
+        // and AdMob depend on Google Play Services — running the consent flow
+        // there can surface the system "Download Google Play services" prompt
+        // that OPPO rejects as "Mandatory download from Google Play". Skip the
+        // whole flow; the app runs fully ad-free on such devices.
+        val gmsStatus = com.google.android.gms.common.GoogleApiAvailability.getInstance()
+            .isGooglePlayServicesAvailable(activity)
+        if (gmsStatus != com.google.android.gms.common.ConnectionResult.SUCCESS) {
+            Log.d(TAG, "GMS unavailable — skipping consent flow and ads")
+            return
+        }
         val params = ConsentRequestParameters.Builder()
             .setTagForUnderAgeOfConsent(false)
             .build()
@@ -69,9 +80,16 @@ object ConsentManager {
         if (info != null) {
             isConsentObtained = info.canRequestAds()
         }
-        if (canRequestAds()) {
+        if (canRequestAds() && isGmsAvailable(context)) {
             AdManager.initialize(context)
         }
+    }
+
+    /** True when Google Play Services is usable on this device. */
+    private fun isGmsAvailable(context: Context): Boolean {
+        val status = com.google.android.gms.common.GoogleApiAvailability.getInstance()
+            .isGooglePlayServicesAvailable(context)
+        return status == com.google.android.gms.common.ConnectionResult.SUCCESS
     }
 
     fun canRequestAds(): Boolean {

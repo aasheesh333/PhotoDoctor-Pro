@@ -15,6 +15,13 @@ object InAppReviewManager {
         if (UserPreferences.hasRequestedReview(context)) return
         val activity = context as? Activity ?: return
 
+        // Play Core in-app review needs Google Play Services; on non-GMS
+        // devices (OPPO review units etc.) it can surface the system
+        // "Download Google Play services" prompt — skip entirely there.
+        val gmsStatus = com.google.android.gms.common.GoogleApiAvailability.getInstance()
+            .isGooglePlayServicesAvailable(context)
+        if (gmsStatus != com.google.android.gms.common.ConnectionResult.SUCCESS) return
+
         if (isReviewInProgress) return
         isReviewInProgress = true
         try {
