@@ -28,6 +28,12 @@ class MainActivity : ComponentActivity() {
 
     private val deniedStatuses = mutableSetOf<String>()
 
+    /** Cached at onCreate — Google Play Services availability gates every
+     *  GMS-dependent path (UMP consent, AdMob init, Play review flow) so
+     *  non-GMS devices (OPPO review units) never see the "Download Google
+     *  Play services" prompt. */
+    private var gmsAvailable: Boolean = false
+
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             val denied = permissions.filterValues { !it }.keys
@@ -45,7 +51,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         splashScreen.setKeepOnScreenCondition { false }
         ConsentManager.init(this)
-        val gmsAvailable = com.google.android.gms.common.GoogleApiAvailability.getInstance()
+        gmsAvailable = com.google.android.gms.common.GoogleApiAvailability.getInstance()
             .isGooglePlayServicesAvailable(this) ==
             com.google.android.gms.common.ConnectionResult.SUCCESS
         if (gmsAvailable && ConsentManager.canRequestAds()) {
